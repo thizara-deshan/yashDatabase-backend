@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER)
+  phone     String?
+  status    UserStatus @default(ACTIVE)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+   // Customer bookings
+  bookings        Booking[]
+  // Employee assignments
+  assignedBookings AssignedBooking[]
+}
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Booking {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  tourPackageId   Int
+  bookingDate     DateTime      @default(now())
+  travelDate      DateTime
+  numberOfPeople  Int
+  totalAmount     Float
+  phone            String?
+  country          String?
+  status          BookingStatus @default(PENDING)
+  specialRequests String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  customer    User        @relation(fields: [userId], references: [id])
+  tourPackage TourPackage @relation(fields: [tourPackageId], references: [id])
+  
+  // Assignment relationship
+  assignment AssignedBooking?
+
+}
+
+enum Role {
+  CUSTOMER
+  EMPLOYEE
+  SUPER_ADMIN
+}
+
+// Assignment model for employee-booking relationship
+model AssignedBooking {
+  id         Int              @id @default(autoincrement())
+  bookingId  Int              @unique
+  employeeId Int
+  assignedAt DateTime          @default(now())
+  status     AssignmentStatus  @default(ASSIGNED)
+  notes      String?
+  
+  // Relations
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  employee User    @relation(fields: [employeeId], references: [id])
+
+  @@map("assigned_bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  ASSIGNED
+  REJECTED
+  ACCEPTED
+  CANCELLED
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  UNASSIGNED
+  ACCEPTED
+  REJECTED
+}
+
+
+
+model TourPackage {
+  id               Int         @id @default(autoincrement())
+  title            String
+  country          String
+  packageType      String
+  locations        Destination[]  @relation("TourDestinations")
+  prices           Float
+  image            String
+  alt              String
+  shortDescription String
+  description      String
+  tourPlanDays     TourPlanDay[]
+  bookings         Booking[]
+}
+
+model Destination {
+  id           Int      @id @default(autoincrement())
+  name         String @unique
+  description  String
+  image        String
+  tourPackage   TourPackage[] @relation("TourDestinations")
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model TourPlanDay {
+  id            Int         @id @default(autoincrement())
+  title         String
+  activity      String
+  description   String
+  endOfTheDay   String
+  tourPackage   TourPackage @relation(fields: [tourPackageId], references: [id])
+  tourPackageId Int
+}
+
