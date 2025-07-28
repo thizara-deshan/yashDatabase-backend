@@ -18,12 +18,9 @@ model User {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-
-   // Customer bookings
   bookings        Booking[]
-  // Employee assignments
-  assignedBookings AssignedBooking[]
+ 
+ 
 }
 enum UserStatus {
   ACTIVE
@@ -48,9 +45,6 @@ model Booking {
   // Relations
   customer    User        @relation(fields: [userId], references: [id])
   tourPackage TourPackage @relation(fields: [tourPackageId], references: [id])
-  
-  // Assignment relationship
-  assignment AssignedBooking?
 
 }
 
@@ -61,20 +55,7 @@ enum Role {
 }
 
 // Assignment model for employee-booking relationship
-model AssignedBooking {
-  id         Int              @id @default(autoincrement())
-  bookingId  Int              @unique
-  employeeId Int
-  assignedAt DateTime          @default(now())
-  status     AssignmentStatus  @default(ASSIGNED)
-  notes      String?
-  
-  // Relations
-  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  employee User    @relation(fields: [employeeId], references: [id])
 
-  @@map("assigned_bookings")
-}
 
 enum BookingStatus {
   PENDING
@@ -84,12 +65,7 @@ enum BookingStatus {
   CANCELLED
 }
 
-enum AssignmentStatus {
-  ASSIGNED
-  UNASSIGNED
-  ACCEPTED
-  REJECTED
-}
+
 
 
 
